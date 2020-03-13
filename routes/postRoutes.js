@@ -76,4 +76,120 @@ router.post("/", (req, res) => {
     }
 });
 
+router.put("/:id", (req, res) => {
+    const { id } = req.params;
+    const updatedPost = { ...req.body };
+
+    if (!updatedPost.title || !updatedPost.contents) {
+        res.status(400).json({
+            errorMessage: "Please provide title and contents for the post"
+        });
+    } else {
+        posts
+            .update(id, updatedPost)
+            .then(response => {
+                if (response < 1) {
+                    res.status(404).json({
+                        errorMessage:
+                            "The post with the specified ID does not exist"
+                    });
+                } else {
+                    res.status(200).send(updatedPost);
+                }
+            })
+            .catch(error => {
+                res.status(500).json({
+                    errorMessage: "The post information could not be modified"
+                });
+            });
+    }
+});
+
+router.delete("/:id", (req, res) => {
+    const { id } = req.params;
+
+    posts
+        .remove(id)
+        .then(response => {
+            if (response < 1) {
+                res.status(404).json({
+                    errorMessage:
+                        "The post with the specified ID does not exist"
+                });
+            } else {
+                res.status(200).send(`Successfully deleted ${response} posts`);
+            }
+        })
+        .catch(error => {
+            res.status(500).json({
+                success: false,
+                errorMessage: "The post could not be removed"
+            });
+        });
+});
+
+// CRUD methods for comments
+
+router.get("/:id/comments", (req, res) => {
+    const { id } = req.params;
+
+    posts
+        .findById(id)
+        .then(resp => {
+            if (resp.length === 0) {
+                res.status(404).json({
+                    success: false,
+                    errorMessage: "The post with the specified id was not found"
+                });
+            } else {
+                posts
+                    .findPostComments(id)
+                    .then(response => {
+                        res.status(200).json(response);
+                    })
+                    .catch(error => {
+                        res.status(500).json({
+                            success: false,
+                            error: error,
+                            errorMessage:
+                                "The comments information could not be retrieved"
+                        });
+                    });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({
+                success: false,
+                errorMessage: "The comments information could not be retrieved"
+            });
+        });
+});
+
+router.post("/:id/comments", (req, res) => {
+    const { id } = req.params;
+    const comment = { ...req.body, post_id: id };
+
+    if (!comment.text) {
+        res.status(400).json({
+            success: false,
+            errorMessage: "Please provide text for the comment"
+        });
+    } else {
+        posts
+            .insertComment(comment)
+            .then(response => {
+                console.log("response: ", response);
+                res.status(201).json({ ...comment, id: response.id });
+            })
+            // the readme says this method returns an error if no post with the id exists, so how do we check if there's an error saving to the database?
+            .catch(error => {
+                res.status(404).json({
+                    success: false,
+                    errorMessage:
+                        "The post with the specified ID does not exist"
+                });
+            });
+    }
+});
+
 module.exports = router;
