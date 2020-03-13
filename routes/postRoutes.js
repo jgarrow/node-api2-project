@@ -38,25 +38,19 @@ router.get("/:id", (req, res) => {
 });
 
 router.post("/", (req, res) => {
-    const comment = req.body;
-    console.log("comment: ", comment);
+    const post = req.body;
 
-    if (!comment.title || !comment.contents) {
+    if (!post.title || !post.contents) {
         res.status(400).json({
             success: false,
             errorMessage: "Please provide title and contents for the post"
         });
     } else {
         posts
-            .insert(comment)
+            .insert(post)
             .then(response => {
-                console.log("insert res: ", response);
-                console.log(
-                    ("{ ...comment, id: res.id }", { ...comment, id: res.id })
-                );
-
                 if (response.id) {
-                    res.status(201).json({ ...comment, id: response.id });
+                    res.status(201).json({ ...post, id: response.id });
                 } else {
                     res.status(500).json({
                         success: false,
@@ -178,7 +172,6 @@ router.post("/:id/comments", (req, res) => {
         posts
             .insertComment(comment)
             .then(response => {
-                console.log("response: ", response);
                 res.status(201).json({ ...comment, id: response.id });
             })
             // the readme says this method returns an error if no post with the id exists, so how do we check if there's an error saving to the database?
