@@ -1,5 +1,7 @@
-const express = require("express");
+require("dotenv").config();
 
+const express = require("express");
+const port = process.env.PORT;
 const postRoutes = require("./routes/postRoutes.js");
 
 const server = express();
@@ -9,6 +11,6 @@ server.use(express.json());
 
 server.use(`${baseUrl}/posts`, postRoutes);
 
-server.listen(5000, () => {
-    console.log("Server listening on port 5000");
+server.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
 });
